@@ -95,40 +95,46 @@ typedef struct _mm_coroutine {
 
 } mm_coroutine;
 
+调度器是管理所有协程运行的组件，协程与调度器的运行关系如下所示。
+
+    
+    协程A     协程B     协程C     调度器
+    yield------------------------>|
+                |<---------------resume
+                yield------------>|
+                        |<-------resume
+
+调度器的属性，需要有保存CPU的寄存器上下文 ctx，
+
+可以从协程运行状态yield到调度器的运行状态。从协程到调度器用yield，从调度器到协程用resume。
+以下为调度器的定义：
 
 
+typedef struct _mm_schedule {
+    uint64_t birth;     //调度器的创建时间
+    mm_cpu_ctx ctx;     //调度器的cpu寄存器上下文
+
+    struct _mm_coroutine *curr_thread;
+    
+    //epoll 操作
+    int poller_fd;
+    int eventfd;
+    struct epoll_event eventlist[XXXX];
+    int nevents;
+
+    int num_new_events;
+
+    mm_coroutine_queue ready_queue;             //就绪队列
+    mm_coroutine_rbtree_sleep sleep_rbtree;     //睡眠rbtree
+    mm_coroutine_rbtree_wait wait_rbtree;       //等待rbtree
+
+} mm_schedule;
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+调度器的实现
+        问题：如何调度协程？
+    
+    调度器的实现，有两种方案，一种是生产者消费者模式，另一种多状态运行。
 
 
 
