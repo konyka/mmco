@@ -36,6 +36,7 @@
     status              enum         状态： 就绪(ready)，睡眠(sleep)，等待(wait)
     sleep_tree_node     rbtree      睡眠红黑树节点
     wait_tree_node      rbtree      等待红黑树节点
+    ready_queue_node    queue       就绪队列节点
 
 比如某协程调用了sleep函数，执行的动作：加入睡眠树(sleep_tree)，status |= S即可。
 
@@ -57,7 +58,20 @@
     用来管理所有协程的属性，作为调度器的属性。
         比如epoll用来管理每一个协程对应的IO，是需要作为调度器属性。
 
+定义一个协程结构体需要哪些域？
 
+    每一个协程拥有自己的上下文环境，需要保存CPU的寄存器状态信息 ctx；
+    需要有子过程的回调函数 func；
+    需要有子过程回调函数的参数 arg；
+    需要定义自己的栈空间 stack；
+    需要有自己栈空间的尺寸 stack_size；
+    需要定义协程的创建时间 birth；
+    需要定义协程当前的运行状态 status；
+    需要定当前运行状态的节点（ready_next, sleep_tree_node, sleep_tree_node）；
+    需要定义协程id；
+    需要定义调度器的全局对象 sched。
+
+协程的核心结构体如下：
 
 
 
