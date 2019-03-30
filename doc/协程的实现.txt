@@ -67,7 +67,7 @@
     需要有自己栈空间的尺寸 stack_size；
     需要定义协程的创建时间 birth；
     需要定义协程当前的运行状态 status；
-    需要定当前运行状态的节点（ready_next, sleep_tree_node, sleep_tree_node）；
+    需要定当前运行状态的节点（ready_queue_next, sleep_tree_node, sleep_tree_node）；
     需要定义协程id；
     需要定义调度器的全局对象 sched。
 
@@ -75,24 +75,23 @@
 
 typedef struct _mm_coroutine {
 
-    mm_cpu_ctx ctx;         
-    proc_coroutine func;
-    void *arg;
-    size_t stack_size;
+    mm_cpu_ctx ctx;         //协程cpu寄存器上下文
+    proc_coroutine func;    //子过程的回调函数
+    void *arg;              //子过程回调函数的参数
+    void *stack;            //自己的栈空间,在这里是由调度器统一设置
+    size_t stack_size;      //自己栈空间的尺寸
 
-    mm_coroutine_status status;
-    mm_schedule *sched;
+    mm_coroutine_status status; //协程当前的运行状态
+    mm_schedule *sched;     //调度器的全局对象
 
-    uint64_t birth;
-    uint64_t id;
+    uint64_t birth;         //协程的创建时间
+    uint64_t id;            //协程id
 
-    void *stack;
 
-    RB_ENTRY(_mm_coroutine) sleep_node;
-    RB_ENTRY(_mm_coroutine) wait_node;
+    RB_ENTRY(_mm_coroutine) sleep_tree_node;        //当前运行状态的节点
+    RB_ENTRY(_mm_coroutine) wait_tree_node;         //当前运行状态的节点
 
-    TAILQ_ENTRY(_mm_coroutine) ready_next;
-    TAILQ_ENTRY(_mm_coroutine) defer_next;
+    TAILQ_ENTRY(_mm_coroutine) ready_queue_next;    //当前运行状态的节点
 
 } mm_coroutine;
 
