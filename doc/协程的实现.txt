@@ -73,6 +73,29 @@
 
 协程的核心结构体如下：
 
+typedef struct _mm_coroutine {
+
+    mm_cpu_ctx ctx;         
+    proc_coroutine func;
+    void *arg;
+    size_t stack_size;
+
+    mm_coroutine_status status;
+    mm_schedule *sched;
+
+    uint64_t birth;
+    uint64_t id;
+
+    void *stack;
+
+    RB_ENTRY(_mm_coroutine) sleep_node;
+    RB_ENTRY(_mm_coroutine) wait_node;
+
+    TAILQ_ENTRY(_mm_coroutine) ready_next;
+    TAILQ_ENTRY(_mm_coroutine) defer_next;
+
+} mm_coroutine;
+
 
 
 
