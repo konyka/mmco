@@ -288,10 +288,58 @@ _switch的实现代码:
 -----------------------------------
 
 
+协程实现:原语
 
+问题：协程内部原语操作都有哪些？应当如何实现？
 
+    协程的核心原语操作：create, resume, yield。
 
+    协程的原语操作有create怎么没有exit？本例中，协程一旦创建就不能由用户自己销毁，必须等待子过程执行结束，
+    就会自动销毁协程的上下文以及数据。以执行入口函数返回而销毁协程的上下文与相关信息。
+    如果func(co->arg) 是子过程，若用户需要长久运行协程，就必须要在func函数里面写入循环等操作。
+    所以在这里并没有实现exit的原语操作。
 
+a、create：创建一个协程。
+
+1.不管调度器是否存在都会创建调度器，不存在也创建。调度器作为全局的单例。
+将调度器的实例存储在线程的私有空间，通过 pthread_setspecific。
+
+2.分配一个coroutine的内存空间，分别设置coroutine的数据项，栈空间，栈大小，初始状态，创建时间，子过程回调函数，子过程的调用参数。
+
+3.将新分配的协程添加到就绪队列 ready_queue中
+
+实现代码如下：
+
+int coroutine_create(coroutine **new_co, proc_coroutine func, void *arg){
+    
+    // to do code
+
+}
+
+b、yield： 让出CPU,控制权移交给调度器。
+
+void coroutine_yield(coroutine *co){
+    // to de code
+}
+
+参数：当前正在运行的协程实例
+
+调用后该函数不会立即返回，而是切换到最近执行resume的上下文，由调度器决定恢复哪个co恢复运行。
+该函数返回是在执行resume的时候，会有调度器统一选择resume的，然后再次调用yield的。
+resume与yield是两个可逆过程的原子操作。
+
+c、resume：恢复协程的运行权
+
+int coroutine_resume(coroutine *co){
+    // to de code
+}
+
+参数：需要恢复运行的协程实例
+
+    调用后该函数也不会立即返回，而是切换到运行协程实例的yield的位置。
+    返回是在等协程相应事务处理完成后，主动yield会返回到resume的地方。
+
+--------------------------------------
 
 
 
