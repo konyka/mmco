@@ -213,7 +213,7 @@ while (1) {
         }
 
         // 使用resume恢复ready的协程运行权
-        
+
         while (!TAILQ_EMPTY(sched->ready)) {
             coroutine *ready = TAILQ_POP(sched->ready);
             resume(ready);
@@ -221,6 +221,82 @@ while (1) {
     }
 
 ------------------------------
+
+协程之间的切换
+
+
+问题：协程的上下文如何切换？切换代码如何实现？
+
+x86_64 的寄存器有16个64位寄存器，分别是：
+%rax, %rbx, %rcx, %rdx, %rsi, %edi, %rbp, %rsp, %r8, %r9, %r10, %r11, %r12,
+%r13, %r14, %r15。
+%rax 作为函数返回值使用的。
+%rsp 栈指针寄存器，指向栈顶
+%rdi, %rsi, %rdx, %rcx, %r8, %r9 用作函数参数，依次对应第1参数，第2参数。。。
+%rbx, %rbp, %r12, %r13, %r14, %r15 用作数据存储，遵循调用者使用规则，换句话说，就是随便用。调用子函数之前要备份它，以防它被修改
+%r10, %r11 用作数据存储，就是使用前要先保存原值。
+
+上下文切换，就是将当前CPU的寄存器暂时保存，再将即将运行的协程的cpu寄存器上下文，分别mov到相对应的寄存器上。此时上下文完成切换。这是保存旧环境--》更换新环境---〉恢复旧环境的过程。
+
+切换上下文的_switch函数：
+
+int _switch(cpu_ctx *new_ctx, cpu_ctx *cur_ctx);
+
+参数1：即将运行的协程的上下文，寄存器列表
+参数2：正在运行的协程的上下文，寄存器列表
+
+cpu_ctx结构体的定义，结构体项命令采用的是x86_64的寄存器名字命名,当然这只是一个名字，
+为了兼容x86也可以定义对应的结构，功能相同。
+
+typedef struct cpu_ctx {
+    void *rsp; //
+    void *rbp;
+    void *rip;
+    void *rdi;
+    void *rsi;
+    void *rbx;
+    void *r1;
+    void *r2;
+    void *r3;
+    void *r4;
+    void *r5;
+} nty_cpu_ctx;
+
+_switch返回后，设置了即将运行的协程的上下文，从而实现上下文的切换。
+
+按照x86_64的寄存器定义，
+%rdi保存第一个参数的值，即new_ctx的值，
+%rsi保存第二个参数的值，即保存cur_ctx的值。
+X86_64每个寄存器是64bit，8byte。
+
+movq %rsp, 0(%rsi) 保存在栈指针到cur_ctx实例的rsp项
+movq %rbp, 8(%rsi) 
+movq (%rsp), %rax  将栈顶地址里面的值存储到rax寄存器中。Ret后出栈，执行栈顶
+movq %rbp, 8(%rsi) 后续的指令都是用来保存CPU的寄存器到new_ctx的每一项中
+movq 8(%rdi), %rbp 将new_ctx的值
+movq 16(%rdi), %rax 将指令指针rip的值存储到rax中
+movq %rax, (%rsp) 将存储的rip值的rax寄存器赋值给栈指针的地址的值。
+Ret  出栈，回到栈指针，执行rip指向的指令。
+
+上下文环境的切换完成。
+
+_switch的实现代码:
+
+//todo add code
+
+
+-----------------------------------
+
+
+
+
+
+
+
+
+
+
+
 
 
 
