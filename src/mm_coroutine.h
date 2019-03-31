@@ -18,15 +18,31 @@
 #ifndef __DARKBLUE_MM_COROUTINE_H__
 #define __DARKBLUE_MM_COROUTINE_H__
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdint.h>
+#include <limits.h>
+#include <assert.h>
+#include <inttypes.h>
+#include <unistd.h>
+#include <pthread.h>
+#include <fcntl.h>
+#include <sys/time.h>
+#include <sys/mman.h>
+#include <netinet/tcp.h>
 
+#include <sys/poll.h>
+#include <sys/epoll.h>
 
+#include <errno.h>
 
 #include "mm_queue.h"
 #include "mm_tree.h"
 
 
-#define MM_CO_MAX_EVENT_SIZE    (1024*1024)
-#define MM_CO_MAX_STACK_SIZE    (16*1024)
+#define MM_CO_MAX_EVENT_SIZE    ( 1024 * 1024 )
+#define MM_CO_MAX_STACK_SIZE    ( 16 * 1024 )
 
 
 
@@ -107,6 +123,42 @@ typedef struct _mm_schedule {
     //private 
 
 } mm_schedule;
+
+
+typedef struct _mm_coroutine {
+
+    //private
+    
+    mm_cpu_ctx ctx;
+    p_co_routine func;
+    void *arg;
+    void *data;
+    void *stack;
+    size_t stack_size;
+    
+    mm_coroutine_status status;
+    mm_schedule *sched;
+
+    uint64_t birth;
+    uint64_t id;
+
+    char func_name[64];
+    struct _mm_coroutine *co_join;
+
+    uint64_t sleep_usecs;
+
+    RB_ENTRY(_mm_coroutine) sleep_node;
+    RB_ENTRY(_mm_coroutine) wait_node;
+
+    LIST_ENTRY(_mm_coroutine) busy_next;
+    TAILQ_ENTRY(_mm_coroutine) ready_next;
+
+    int ready_fds;
+    struct pollfd *pfds;
+    nfds_t nfds;
+    
+} mm_coroutine;
+
 
 
 
