@@ -137,7 +137,7 @@ typedef struct _mm_schedule {
     调度器的实现，有两种方案，一种是生产者消费者模式，另一种多状态运行。
 
 
-生产者消费者模式
+1、生产者消费者模式
 
     生产者                                             消费者
 
@@ -175,6 +175,58 @@ while (1) {
             resume(ready);
         }
     }
+
+-----------------------
+
+2、多状态运行：状态机模式
+
+    生产者                                             消费者
+
+    sleep_tree_node-------------------------------------
+                                                       |
+                                                       |
+                                                       \/
+     ready_queue-------------------------------------> CPU
+                                                       /\
+                                                       |
+                                                       |
+    wait_tree_node--------------------------------------   
+
+逻辑代码如下：
+
+while (1) {
+
+        //遍历睡眠集合，使用resume恢复expired的协程运行权
+
+        coroutine *expired = NULL;
+        while ((expired = sleep_tree_expired(sched)) != NULL) {
+            resume(expired);
+        }
+
+        //遍历等待集合，使用resume恢复wait的协程运行权
+
+        coroutine *wait = NULL;
+        int nready = epoll_wait(sched->epfd, events, EVENT_MAX, 1);
+        for (i = 0;i < nready;i ++) {
+            wait = wait_tree_search(events[i].data.fd);
+            resume(wait);
+        }
+
+        // 使用resume恢复ready的协程运行权
+        
+        while (!TAILQ_EMPTY(sched->ready)) {
+            coroutine *ready = TAILQ_POP(sched->ready);
+            resume(ready);
+        }
+    }
+
+------------------------------
+
+
+
+
+
+
 
 
 
