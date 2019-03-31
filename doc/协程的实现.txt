@@ -141,7 +141,7 @@ typedef struct _mm_schedule {
 
     生产者                                             消费者
 
-    sleep_tree_node-------------
+    sleep_tree_node------------+
                                |
                                |
                                \/
@@ -149,7 +149,7 @@ typedef struct _mm_schedule {
                                /\
                                |
                                |
-    wait_tree_node--------------                              
+    wait_tree_node-------------+                              
 
 伪代码逻辑代码如下所示：
 
@@ -182,7 +182,7 @@ while (1) {
 
     生产者                                             消费者
 
-    sleep_tree_node-------------------------------------
+    sleep_tree_node------------------------------------+
                                                        |
                                                        |
                                                        \/
@@ -190,7 +190,7 @@ while (1) {
                                                        /\
                                                        |
                                                        |
-    wait_tree_node--------------------------------------   
+    wait_tree_node-------------------------------------+   
 
 逻辑代码如下：
 
@@ -321,7 +321,7 @@ b、yield： 让出CPU,控制权移交给调度器。
 void coroutine_yield(coroutine *co){
     // to de code
 }
-
+s
 参数：当前正在运行的协程实例
 
 调用后该函数不会立即返回，而是切换到最近执行resume的上下文，由调度器决定恢复哪个co恢复运行。

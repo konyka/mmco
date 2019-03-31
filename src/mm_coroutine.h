@@ -20,6 +20,11 @@
 
 
 
+
+#include "mm_queue.h"
+#include "mm_tree.h"
+
+
 #define MM_CO_MAX_EVENT_SIZE    (1024*1024)
 #define MM_CO_MAX_STACK_SIZE    (16*1024)
 
@@ -75,6 +80,34 @@ typedef struct _mm_cpu_ctx {
     void *r5;
 
 } mm_cpu_ctx;
+
+
+typedef struct _mm_schedule {
+    uint64_t birth;
+    mm_cpu_ctx ctx;
+    void *stack;
+    size_t stack_size;
+    int spawned_coroutines;
+    uint64_t default_timeout;
+    struct _mm_coroutine *curr_coroutine;
+    int page_size;
+
+    int poller_fd;
+    int eventfd;
+    struct epoll_event eventlist[MM_CO_MAX_EVENT_SIZE];
+    int nevents;
+
+    mm_coroutine_queue ready_queue;
+
+    mm_coroutine_list busy_list;
+    
+    mm_coroutine_rbtree_sleep sleeping_tree;
+    mm_coroutine_rbtree_wait waiting_tree;
+
+    //private 
+
+} mm_schedule;
+
 
 
 
