@@ -212,6 +212,7 @@ void mm_coroutine_sleep(uint64_t msecs);
 
 int mm_socket(int domain, int type, int protocol);
 int mm_accept(int fd, struct sockaddr *addr, socklen_t *len);
+int mm_connect(int fd, struct sockaddr *name, socklen_t namelen) ;
 ssize_t mm_send(int fd, const void *buf, size_t len, int flags);
 ssize_t mm_recv(int fd, void *buf, size_t len, int flags);
 int mm_close(int fd);
