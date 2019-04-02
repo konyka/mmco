@@ -239,6 +239,56 @@ int mm_close(int fd) {
     return close(fd);
 }
 
+ssize_t mm_sendto(int fd, const void *buf, size_t len, int flags,
+               const struct sockaddr *dest_addr, socklen_t addrlen) {
+
+
+    int sent = 0;
+
+    while (sent < len) {
+        struct pollfd fds;
+        fds.fd = fd;
+        fds.events = POLLOUT | POLLERR | POLLHUP;
+
+        mm_poll_inner(&fds, 1, 1);
+        int ret = sendto(fd, ((char*)buf)+sent, len-sent, flags, dest_addr, addrlen);
+        if (ret <= 0) {
+            if (errno == EAGAIN) continue;
+            else if (errno == ECONNRESET) {
+                return ret;
+            }
+            printf("send errno : %d, ret : %d\n", errno, ret);
+            assert(0);
+        }
+        sent += ret;
+    }
+    return sent;
+    
+}
+
+ssize_t mm_recvfrom(int fd, void *buf, size_t len, int flags,
+                 struct sockaddr *src_addr, socklen_t *addrlen) {
+
+    struct pollfd fds;
+    fds.fd = fd;
+    fds.events = POLLIN | POLLERR | POLLHUP;
+
+    mm_poll_inner(&fds, 1, 1);
+
+    int ret = recvfrom(fd, buf, len, flags, src_addr, addrlen);
+    if (ret < 0) {
+        if (errno == EAGAIN) return ret;
+        if (errno == ECONNRESET) return 0;
+        
+        printf("recv error : %d, ret : %d\n", errno, ret);
+        assert(0);
+    }
+    return ret;
+
+}
+
+
+
 
 
 

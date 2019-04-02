@@ -218,7 +218,10 @@ ssize_t mm_recv(int fd, void *buf, size_t len, int flags);
 int mm_close(int fd);
 int mm_poll(struct pollfd *fds, nfds_t nfds, int timeout);
 
-
+ssize_t mm_sendto(int fd, const void *buf, size_t len, int flags,
+               const struct sockaddr *dest_addr, socklen_t addrlen);
+ssize_t mm_recvfrom(int fd, void *buf, size_t len, int flags,
+                 struct sockaddr *src_addr, socklen_t *addrlen);
 
 #endif /* __DARKBLUE_MM_COROUTINE_H__ */
 
