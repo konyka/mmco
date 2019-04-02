@@ -22,21 +22,21 @@ all : $(SUB_DIR) $(BIN)
 
 
 $(SUB_DIR) : ECHO
-    make -C $@
+	make -C $@
 
 #DEBUG : ECHO
-#   make -C bin
+#	make -C bin
 
 ECHO :
-    @echo $(SUB_DIR)
+	@echo $(SUB_DIR)
 
 
 mm_server : $(OBJS_DIR)/mm_socket.o $(OBJS_DIR)/mm_coroutine.o $(OBJS_DIR)/mm_epoll.o $(OBJS_DIR)/mm_schedule.o $(OBJS_DIR)/mm_server.o
-    $(CC) -o $(BIN_DIR)/$@ $^ $(FLAG) && $(ECHO) $(EFLAG)
+	$(CC) -o $(BIN_DIR)/$@ $^ $(FLAG) && $(ECHO) $(EFLAG)
 
 mm_client : $(OBJS_DIR)/mm_socket.o $(OBJS_DIR)/mm_coroutine.o $(OBJS_DIR)/mm_epoll.o $(OBJS_DIR)/mm_schedule.o $(OBJS_DIR)/mm_client.o
-    $(CC) -o $(BIN_DIR)/$@ $^ $(FLAG) && $(ECHO) $(EFLAG)
+	$(CC) -o $(BIN_DIR)/$@ $^ $(FLAG) && $(ECHO) $(EFLAG)
 
 clean :
-    rm -rf $(BIN_DIR)/* $(OBJS_DIR)/*
+	rm -rf $(BIN_DIR)/* $(OBJS_DIR)/*
 
